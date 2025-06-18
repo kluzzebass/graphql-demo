@@ -1,0 +1,79 @@
+directive @goExtraField(
+  name: String
+  type: String!
+  overrideTags: String
+  description: String
+) repeatable on OBJECT | INPUT_OBJECT
+
+scalar Time
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  phoneNumber: String!
+  address: Address!
+  role: Role!
+  lastLogin: Time!
+  preferences: Preferences!
+  posts: [Post!]!
+}
+
+type Address {
+  street: String!
+  city: String!
+  zipCode: String!
+  country: String!
+}
+
+enum Role {
+  admin
+  user
+}
+
+type Preferences {
+  theme: String!
+  notifications: Boolean!
+}
+
+type Post @goExtraField(name: "UserID", type: "string") {
+  id: ID!
+  title: String!
+  ingress: String!
+  content: String!
+  user: User!
+  category: Category!
+  createdAt: Time!
+}
+
+enum Category {
+  Technology
+  Science
+  Business
+  Entertainment
+  Health
+}
+
+type Query {
+  users: [User!]!
+  posts: [Post!]!
+}
+
+type Mutation {
+  createPost(input: NewPost!): Post!
+  deletePost(id: ID!): Boolean!
+}
+
+input NewPost {
+  id: ID
+  userId: ID!
+  title: String!
+  ingress: String!
+  content: String!
+  category: Category!
+}
+
+type Subscription {
+  postCreated: Post!
+  postDeleted: ID!
+}
