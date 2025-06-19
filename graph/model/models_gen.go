@@ -24,7 +24,7 @@ type NewPost struct {
 	UserID   int      `json:"userId"`
 	Title    string   `json:"title"`
 	Ingress  string   `json:"ingress"`
-	Content  string   `json:"content"`
+	Body     string   `json:"body"`
 	Category Category `json:"category"`
 }
 

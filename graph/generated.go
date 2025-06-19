@@ -65,8 +65,8 @@ type ComplexityRoot struct {
 	}
 
 	Post struct {
+		Body      func(childComplexity int, limit *int32, offset *int32) int
 		Category  func(childComplexity int) int
-		Content   func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Ingress   func(childComplexity int) int
@@ -107,6 +107,7 @@ type MutationResolver interface {
 	DeletePost(ctx context.Context, id int) (bool, error)
 }
 type PostResolver interface {
+	Body(ctx context.Context, obj *model.Post, limit *int32, offset *int32) (string, error)
 	User(ctx context.Context, obj *model.Post) (*model.User, error)
 }
 type QueryResolver interface {
@@ -192,19 +193,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Mutation.DeletePost(childComplexity, args["id"].(int)), true
 
+	case "Post.body":
+		if e.complexity.Post.Body == nil {
+			break
+		}
+
+		args, err := ec.field_Post_body_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Post.Body(childComplexity, args["limit"].(*int32), args["offset"].(*int32)), true
+
 	case "Post.category":
 		if e.complexity.Post.Category == nil {
 			break
 		}
 
 		return e.complexity.Post.Category(childComplexity), true
-
-	case "Post.content":
-		if e.complexity.Post.Content == nil {
-			break
-		}
-
-		return e.complexity.Post.Content(childComplexity), true
 
 	case "Post.createdAt":
 		if e.complexity.Post.CreatedAt == nil {
@@ -531,6 +537,47 @@ func (ec *executionContext) field_Mutation_deletePost_argsID(
 	}
 
 	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Post_body_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Post_body_argsLimit(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["limit"] = arg0
+	arg1, err := ec.field_Post_body_argsOffset(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["offset"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Post_body_argsLimit(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["limit"]; ok {
+		return ec.unmarshalOInt2ᚖint32(ctx, tmp)
+	}
+
+	var zeroVal *int32
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Post_body_argsOffset(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+	if tmp, ok := rawArgs["offset"]; ok {
+		return ec.unmarshalOInt2ᚖint32(ctx, tmp)
+	}
+
+	var zeroVal *int32
 	return zeroVal, nil
 }
 
@@ -878,8 +925,8 @@ func (ec *executionContext) fieldContext_Mutation_createPost(ctx context.Context
 				return ec.fieldContext_Post_title(ctx, field)
 			case "ingress":
 				return ec.fieldContext_Post_ingress(ctx, field)
-			case "content":
-				return ec.fieldContext_Post_content(ctx, field)
+			case "body":
+				return ec.fieldContext_Post_body(ctx, field)
 			case "user":
 				return ec.fieldContext_Post_user(ctx, field)
 			case "category":
@@ -1091,8 +1138,8 @@ func (ec *executionContext) fieldContext_Post_ingress(_ context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Post_content(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Post_content(ctx, field)
+func (ec *executionContext) _Post_body(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Post_body(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1105,7 +1152,7 @@ func (ec *executionContext) _Post_content(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Content, nil
+		return ec.resolvers.Post().Body(rctx, obj, fc.Args["limit"].(*int32), fc.Args["offset"].(*int32))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1122,15 +1169,26 @@ func (ec *executionContext) _Post_content(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Post_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Post_body(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Post",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Post_body_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1484,8 +1542,8 @@ func (ec *executionContext) fieldContext_Query_posts(_ context.Context, field gr
 				return ec.fieldContext_Post_title(ctx, field)
 			case "ingress":
 				return ec.fieldContext_Post_ingress(ctx, field)
-			case "content":
-				return ec.fieldContext_Post_content(ctx, field)
+			case "body":
+				return ec.fieldContext_Post_body(ctx, field)
 			case "user":
 				return ec.fieldContext_Post_user(ctx, field)
 			case "category":
@@ -1689,8 +1747,8 @@ func (ec *executionContext) fieldContext_Subscription_postCreated(_ context.Cont
 				return ec.fieldContext_Post_title(ctx, field)
 			case "ingress":
 				return ec.fieldContext_Post_ingress(ctx, field)
-			case "content":
-				return ec.fieldContext_Post_content(ctx, field)
+			case "body":
+				return ec.fieldContext_Post_body(ctx, field)
 			case "user":
 				return ec.fieldContext_Post_user(ctx, field)
 			case "category":
@@ -2175,8 +2233,8 @@ func (ec *executionContext) fieldContext_User_posts(_ context.Context, field gra
 				return ec.fieldContext_Post_title(ctx, field)
 			case "ingress":
 				return ec.fieldContext_Post_ingress(ctx, field)
-			case "content":
-				return ec.fieldContext_Post_content(ctx, field)
+			case "body":
+				return ec.fieldContext_Post_body(ctx, field)
 			case "user":
 				return ec.fieldContext_Post_user(ctx, field)
 			case "category":
@@ -4148,7 +4206,7 @@ func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj any) 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "userId", "title", "ingress", "content", "category"}
+	fieldsInOrder := [...]string{"id", "userId", "title", "ingress", "body", "category"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4183,13 +4241,13 @@ func (ec *executionContext) unmarshalInputNewPost(ctx context.Context, obj any) 
 				return it, err
 			}
 			it.Ingress = data
-		case "content":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+		case "body":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("body"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Content = data
+			it.Body = data
 		case "category":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
 			data, err := ec.unmarshalNCategory2githubᚗcomᚋkluzzebassᚋgraphqlᚑdemoᚋgraphᚋmodelᚐCategory(ctx, v)
@@ -4347,11 +4405,42 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "content":
-			out.Values[i] = ec._Post_content(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+		case "body":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_body(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "user":
 			field := field
 
@@ -5549,6 +5638,24 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalInt(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt32(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint32(ctx context.Context, sel ast.SelectionSet, v *int32) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalInt32(*v)
 	return res
 }
 

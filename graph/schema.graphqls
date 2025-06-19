@@ -36,11 +36,11 @@ type Preferences {
   notifications: Boolean!
 }
 
-type Post @goExtraField(name: "UserID", type: "string") {
+type Post {
   id: ID!
   title: String!
   ingress: String!
-  content: String!
+  body(limit: Int, offset: Int): String!
   user: User!
   category: Category!
   createdAt: Time!
@@ -69,7 +69,7 @@ input NewPost {
   userId: ID!
   title: String!
   ingress: String!
-  content: String!
+  body: String!
   category: Category!
 }
 

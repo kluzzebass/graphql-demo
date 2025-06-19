@@ -40,7 +40,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) 
 		ID:        *input.ID,
 		Title:     input.Title,
 		Ingress:   input.Ingress,
-		Content:   input.Content,
+		Content:   input.Body,
 		UserID:    input.UserID,
 		Category:  input.Category,
 		CreatedAt: time.Now(),
@@ -63,6 +63,18 @@ func (r *mutationResolver) DeletePost(ctx context.Context, id int) (bool, error)
 	r.PostDeletedSub.Publish([]int{id})
 
 	return true, nil
+}
+
+// Body is the resolver for the body field.
+func (r *postResolver) Body(ctx context.Context, obj *model.Post, limit *int32, offset *int32) (string, error) {
+	body := obj.Content
+	if offset != nil {
+		body = body[*offset:]
+	}
+	if limit != nil {
+		body = body[:*limit]
+	}
+	return body, nil
 }
 
 // User is the resolver for the user field.
