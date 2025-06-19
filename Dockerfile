@@ -1,5 +1,5 @@
-# Use the official Go image as the base image
-FROM golang:alpine AS builder
+# Use the official Go image as the base image with platform support
+FROM --platform=$BUILDPLATFORM golang:alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -13,8 +13,12 @@ RUN go mod download
 # Copy the source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+# Build the application with platform-specific settings
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -o main .
 
 # Use a minimal alpine image for the final stage
 FROM alpine:latest
