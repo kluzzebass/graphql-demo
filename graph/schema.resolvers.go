@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
-	"log"
+	"sort"
 	"time"
 
 	"github.com/kluzzebass/graphql-demo/graph/model"
@@ -15,6 +15,7 @@ import (
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) (*model.Post, error) {
+	LogResolverDepth(ctx, "mutationResolver.CreatePost")
 	_, ok := r.UserMap.Get(input.UserID)
 	if !ok {
 		return nil, fmt.Errorf("user not found")
@@ -54,6 +55,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) 
 
 // DeletePost is the resolver for the deletePost field.
 func (r *mutationResolver) DeletePost(ctx context.Context, id int) (bool, error) {
+	LogResolverDepth(ctx, fmt.Sprintf("mutationResolver.DeletePost (id: %d)", id))
 	_, ok := r.PostMap.Get(id)
 	if !ok {
 		return false, fmt.Errorf("post not found")
@@ -67,18 +69,24 @@ func (r *mutationResolver) DeletePost(ctx context.Context, id int) (bool, error)
 
 // Body is the resolver for the body field.
 func (r *postResolver) Body(ctx context.Context, obj *model.Post, limit *int32, offset *int32) (string, error) {
+	lstr := ""
+	ostr := ""
 	body := obj.Content
 	if offset != nil {
+		ostr = fmt.Sprintf(", offset: %d", *offset)
 		body = body[*offset:]
 	}
 	if limit != nil {
+		lstr = fmt.Sprintf(", limit: %d", *limit)
 		body = body[:*limit]
 	}
+	LogResolverDepth(ctx, fmt.Sprintf("postResolver.Body (post: %d%s%s)", obj.ID, lstr, ostr))
 	return body, nil
 }
 
 // User is the resolver for the user field.
 func (r *postResolver) User(ctx context.Context, obj *model.Post) (*model.User, error) {
+	LogResolverDepth(ctx, fmt.Sprintf("postResolver.User (user: %d)", obj.UserID))
 	user, ok := r.UserMap.Get(obj.UserID)
 	if !ok {
 		return nil, fmt.Errorf("user not found")
@@ -89,27 +97,39 @@ func (r *postResolver) User(ctx context.Context, obj *model.Post) (*model.User, 
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	LogResolverDepth(ctx, "queryResolver.Users")
 	users := []*model.User{}
 	for user := range r.UserMap.Values() {
 		users = append(users, user)
 	}
+
+	// sort the users by id
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].ID < users[j].ID
+	})
 
 	return users, nil
 }
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
+	LogResolverDepth(ctx, "queryResolver.Posts")
 	posts := []*model.Post{}
 	for post := range r.PostMap.Values() {
 		posts = append(posts, post)
 	}
+
+	// sort the posts by id
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].ID < posts[j].ID
+	})
 
 	return posts, nil
 }
 
 // PostCreated is the resolver for the postCreated field.
 func (r *subscriptionResolver) PostCreated(ctx context.Context) (<-chan *model.Post, error) {
-	log.Println("postCreated subscription started")
+	LogResolverDepth(ctx, "subscriptionResolver.PostCreated")
 	sub := r.PostCreatedSub.Subscribe(ctx, func(msg *model.Post) bool {
 		return true
 	})
@@ -119,7 +139,7 @@ func (r *subscriptionResolver) PostCreated(ctx context.Context) (<-chan *model.P
 
 // PostDeleted is the resolver for the postDeleted field.
 func (r *subscriptionResolver) PostDeleted(ctx context.Context) (<-chan int, error) {
-	log.Println("postDeleted subscription started")
+	LogResolverDepth(ctx, "subscriptionResolver.PostDeleted")
 	sub := r.PostDeletedSub.Subscribe(ctx, func(msg int) bool {
 		return true
 	})
@@ -129,12 +149,18 @@ func (r *subscriptionResolver) PostDeleted(ctx context.Context) (<-chan int, err
 
 // Posts is the resolver for the posts field.
 func (r *userResolver) Posts(ctx context.Context, obj *model.User) ([]*model.Post, error) {
+	LogResolverDepth(ctx, fmt.Sprintf("userResolver.Posts (user: %d)", obj.ID))
 	posts := []*model.Post{}
 	for post := range r.PostMap.Values() {
 		if post.UserID == obj.ID {
 			posts = append(posts, post)
 		}
 	}
+
+	// sort the posts by id
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].ID < posts[j].ID
+	})
 
 	return posts, nil
 }

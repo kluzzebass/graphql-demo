@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
@@ -50,6 +52,11 @@ func main() {
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New[string](100),
+	})
+
+	srv.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+		log.Println("--------------------------------")
+		return next(ctx)
 	})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
