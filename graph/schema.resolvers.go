@@ -96,8 +96,24 @@ func (r *postResolver) User(ctx context.Context, obj *model.Post) (*model.User, 
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	LogResolverDepth(ctx, "queryResolver.Users")
+func (r *queryResolver) Users(ctx context.Context, id *int) ([]*model.User, error) {
+	userStr := ""
+	if id != nil {
+		userStr = fmt.Sprintf(" (id: %d)", *id)
+	}
+
+	LogResolverDepth(ctx, fmt.Sprintf("queryResolver.Users%s", userStr))
+
+	// single user
+	if id != nil {
+		user, ok := r.UserMap.Get(*id)
+		if !ok {
+			return nil, fmt.Errorf("user not found")
+		}
+		return []*model.User{user}, nil
+	}
+
+	// all users
 	users := []*model.User{}
 	for user := range r.UserMap.Values() {
 		users = append(users, user)

@@ -55,7 +55,7 @@ enum Category {
 }
 
 type Query {
-  users: [User!]!
+  users(id: ID): [User!]!
   posts: [Post!]!
 }
 
