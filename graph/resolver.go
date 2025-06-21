@@ -2,7 +2,9 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"reflect"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -24,8 +26,29 @@ type Resolver struct {
 	PostDeletedSub *subscription.Manager[int]
 }
 
+type ResolverArg struct {
+	Key   string
+	Value any
+}
+
+type ResolverArgs []ResolverArg
+
+func (r ResolverArgs) String() string {
+	parts := []string{}
+	for _, arg := range r {
+		// use reflection to check if the value is nil
+		if !reflect.ValueOf(arg.Value).IsNil() {
+			parts = append(parts, fmt.Sprintf("%s: %v", arg.Key, arg.Value))
+		}
+	}
+	if len(parts) > 0 {
+		return fmt.Sprintf(" (%s)", strings.Join(parts, ", "))
+	}
+	return ""
+}
+
 // LogResolverDepth is a helper function to get and log the current resolver's depth.
-func LogResolverDepth(ctx context.Context, resolverName string) {
+func LogResolverDepth(ctx context.Context, resolverName string, args ResolverArgs) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
 		log.Printf("WARNING: No FieldContext found for resolver '%s'. This might happen for root resolvers or in non-GraphQL contexts.\n", resolverName)
@@ -47,11 +70,5 @@ func LogResolverDepth(ctx context.Context, resolverName string) {
 
 	spaces := strings.Repeat(" ", depth*2)
 
-	log.Printf("%s%s → %s\n", spaces, resolverName, path.String())
-
-	// You can still access other useful info directly from the current FieldContext:
-	// fmt.Printf("  Field Name: %s\n", fc.Field.Name)
-	// if fc.Index != nil {
-	// 	fmt.Printf("  Index (if list item): %d\n", *fc.Index)
-	// }
+	log.Printf("%s%s%s → %s\n", spaces, resolverName, args.String(), path.String())
 }

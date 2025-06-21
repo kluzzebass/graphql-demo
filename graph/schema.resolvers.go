@@ -15,7 +15,7 @@ import (
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) (*model.Post, error) {
-	LogResolverDepth(ctx, "mutationResolver.CreatePost")
+	LogResolverDepth(ctx, "mutationResolver.CreatePost", ResolverArgs{})
 	_, ok := r.UserMap.Get(input.UserID)
 	if !ok {
 		return nil, fmt.Errorf("user not found")
@@ -55,7 +55,9 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input model.NewPost) 
 
 // DeletePost is the resolver for the deletePost field.
 func (r *mutationResolver) DeletePost(ctx context.Context, id int) (bool, error) {
-	LogResolverDepth(ctx, fmt.Sprintf("mutationResolver.DeletePost (id: %d)", id))
+	LogResolverDepth(ctx, "mutationResolver.DeletePost", ResolverArgs{
+		{Key: "id", Value: id},
+	})
 	_, ok := r.PostMap.Get(id)
 	if !ok {
 		return false, fmt.Errorf("post not found")
@@ -69,24 +71,26 @@ func (r *mutationResolver) DeletePost(ctx context.Context, id int) (bool, error)
 
 // Body is the resolver for the body field.
 func (r *postResolver) Body(ctx context.Context, obj *model.Post, limit *int32, offset *int32) (string, error) {
-	lstr := ""
-	ostr := ""
+	LogResolverDepth(ctx, "postResolver.Body", ResolverArgs{
+		{Key: "post", Value: obj.ID},
+		{Key: "limit", Value: limit},
+		{Key: "offset", Value: offset},
+	})
 	body := obj.Content
 	if offset != nil {
-		ostr = fmt.Sprintf(", offset: %d", *offset)
 		body = body[*offset:]
 	}
 	if limit != nil {
-		lstr = fmt.Sprintf(", limit: %d", *limit)
 		body = body[:*limit]
 	}
-	LogResolverDepth(ctx, fmt.Sprintf("postResolver.Body (post: %d%s%s)", obj.ID, lstr, ostr))
 	return body, nil
 }
 
 // User is the resolver for the user field.
 func (r *postResolver) User(ctx context.Context, obj *model.Post) (*model.User, error) {
-	LogResolverDepth(ctx, fmt.Sprintf("postResolver.User (user: %d)", obj.UserID))
+	LogResolverDepth(ctx, "postResolver.User", ResolverArgs{
+		{Key: "user", Value: obj.UserID},
+	})
 	user, ok := r.UserMap.Get(obj.UserID)
 	if !ok {
 		return nil, fmt.Errorf("user not found")
@@ -97,12 +101,9 @@ func (r *postResolver) User(ctx context.Context, obj *model.Post) (*model.User, 
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, id *int) ([]*model.User, error) {
-	userStr := ""
-	if id != nil {
-		userStr = fmt.Sprintf(" (id: %d)", *id)
-	}
-
-	LogResolverDepth(ctx, fmt.Sprintf("queryResolver.Users%s", userStr))
+	LogResolverDepth(ctx, "queryResolver.Users", ResolverArgs{
+		{Key: "id", Value: id},
+	})
 
 	// single user
 	if id != nil {
@@ -129,7 +130,7 @@ func (r *queryResolver) Users(ctx context.Context, id *int) ([]*model.User, erro
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
-	LogResolverDepth(ctx, "queryResolver.Posts")
+	LogResolverDepth(ctx, "queryResolver.Posts", ResolverArgs{})
 	posts := []*model.Post{}
 	for post := range r.PostMap.Values() {
 		posts = append(posts, post)
@@ -145,7 +146,7 @@ func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
 
 // PostCreated is the resolver for the postCreated field.
 func (r *subscriptionResolver) PostCreated(ctx context.Context) (<-chan *model.Post, error) {
-	LogResolverDepth(ctx, "subscriptionResolver.PostCreated")
+	LogResolverDepth(ctx, "subscriptionResolver.PostCreated", ResolverArgs{})
 	sub := r.PostCreatedSub.Subscribe(ctx, func(msg *model.Post) bool {
 		return true
 	})
@@ -155,7 +156,7 @@ func (r *subscriptionResolver) PostCreated(ctx context.Context) (<-chan *model.P
 
 // PostDeleted is the resolver for the postDeleted field.
 func (r *subscriptionResolver) PostDeleted(ctx context.Context) (<-chan int, error) {
-	LogResolverDepth(ctx, "subscriptionResolver.PostDeleted")
+	LogResolverDepth(ctx, "subscriptionResolver.PostDeleted", ResolverArgs{})
 	sub := r.PostDeletedSub.Subscribe(ctx, func(msg int) bool {
 		return true
 	})
@@ -165,7 +166,9 @@ func (r *subscriptionResolver) PostDeleted(ctx context.Context) (<-chan int, err
 
 // Posts is the resolver for the posts field.
 func (r *userResolver) Posts(ctx context.Context, obj *model.User) ([]*model.Post, error) {
-	LogResolverDepth(ctx, fmt.Sprintf("userResolver.Posts (user: %d)", obj.ID))
+	LogResolverDepth(ctx, "userResolver.Posts", ResolverArgs{
+		{Key: "user", Value: obj.ID},
+	})
 	posts := []*model.Post{}
 	for post := range r.PostMap.Values() {
 		if post.UserID == obj.ID {
