@@ -36,9 +36,21 @@ type ResolverArgs []ResolverArg
 func (r ResolverArgs) String() string {
 	parts := []string{}
 	for _, arg := range r {
-		// use reflection to check if the value is nil
-		if !reflect.ValueOf(arg.Value).IsNil() {
-			parts = append(parts, fmt.Sprintf("%s: %v", arg.Key, arg.Value))
+		if arg.Value != nil {
+			value := reflect.ValueOf(arg.Value)
+			if value.Kind() == reflect.Ptr && value.IsNil() {
+				continue
+			}
+
+			// Handle pointer vs non-pointer values
+			var interfaceValue interface{}
+			if value.Kind() == reflect.Ptr {
+				interfaceValue = value.Elem().Interface()
+			} else {
+				interfaceValue = value.Interface()
+			}
+
+			parts = append(parts, fmt.Sprintf("%s: %v", arg.Key, interfaceValue))
 		}
 	}
 	if len(parts) > 0 {
