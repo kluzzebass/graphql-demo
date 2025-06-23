@@ -1,16 +1,14 @@
-package graph
+package resolver
 
 import (
 	"context"
 	"fmt"
+	"graphql-demo/internal/service"
 	"log"
 	"reflect"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/kluzzebass/graphql-demo/graph/model"
-	"github.com/kluzzebass/graphql-demo/safemap"
-	"github.com/kluzzebass/graphql-demo/subscription"
 )
 
 //go:generate go run github.com/99designs/gqlgen generate
@@ -20,10 +18,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	UserMap        *safemap.SafeMap[int, *model.User]
-	PostMap        *safemap.SafeMap[int, *model.Post]
-	PostCreatedSub *subscription.Manager[*model.Post]
-	PostDeletedSub *subscription.Manager[int]
+	UserService    *service.UserService
+	PostService    *service.PostService
+	CommentService *service.CommentService
 }
 
 type ResolverArg struct {
@@ -41,6 +38,9 @@ func (r ResolverArgs) String() string {
 			if value.Kind() == reflect.Ptr && value.IsNil() {
 				continue
 			}
+			if value.Kind() == reflect.Slice && value.IsNil() {
+				continue
+			}
 
 			// Handle pointer vs non-pointer values
 			var interfaceValue interface{}
@@ -54,7 +54,7 @@ func (r ResolverArgs) String() string {
 		}
 	}
 	if len(parts) > 0 {
-		return fmt.Sprintf(" (%s)", strings.Join(parts, ", "))
+		return fmt.Sprintf("(%s)", strings.Join(parts, ", "))
 	}
 	return ""
 }

@@ -1,0 +1,28 @@
+extend type Query {
+  comments(ids: [ID!]): [Comment!]!
+}
+
+extend type Mutation {
+  createComment(input: NewComment!): Comment!
+  deleteComment(id: ID!): Boolean!
+}
+
+extend type Subscription {
+  commentCreated: Comment!
+  commentDeleted: ID!
+}
+
+type Comment {
+  id: ID!
+  post: Post!
+  user: User!
+  createdAt: Time!
+  content: String!
+}
+
+input NewComment {
+  id: ID
+  postId: ID!
+  userId: ID!
+  content: String!
+}

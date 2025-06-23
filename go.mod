@@ -1,4 +1,4 @@
-module github.com/kluzzebass/graphql-demo
+module graphql-demo
 
 go 1.24.4
 

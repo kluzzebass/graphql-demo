@@ -1,0 +1,8 @@
+directive @goExtraField(
+  name: String
+  type: String!
+  overrideTags: String
+  description: String
+) repeatable on OBJECT | INPUT_OBJECT
+
+scalar Time

@@ -19,6 +19,13 @@ type Address struct {
 type Mutation struct {
 }
 
+type NewComment struct {
+	ID      *int   `json:"id,omitempty"`
+	PostID  int    `json:"postId"`
+	UserID  int    `json:"userId"`
+	Content string `json:"content"`
+}
+
 type NewPost struct {
 	ID       *int     `json:"id,omitempty"`
 	UserID   int      `json:"userId"`

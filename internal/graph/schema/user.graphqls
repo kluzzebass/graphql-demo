@@ -1,0 +1,34 @@
+extend type Query {
+  users(ids: [ID!]): [User!]!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  phoneNumber: String!
+  address: Address!
+  role: Role!
+  createdAt: Time!
+  lastLogin: Time!
+  preferences: Preferences!
+  posts(ids: [ID!]): [Post!]!
+  comments(ids: [ID!]): [Comment!]!
+}
+
+type Address {
+  street: String!
+  city: String!
+  zipCode: String!
+  country: String!
+}
+
+enum Role {
+  admin
+  user
+}
+
+type Preferences {
+  theme: String!
+  notifications: Boolean!
+}
