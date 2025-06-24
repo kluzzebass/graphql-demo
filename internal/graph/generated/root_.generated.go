@@ -97,17 +97,18 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Address     func(childComplexity int) int
-		Comments    func(childComplexity int, ids []int) int
-		CreatedAt   func(childComplexity int) int
-		Email       func(childComplexity int) int
-		ID          func(childComplexity int) int
-		LastLogin   func(childComplexity int) int
-		Name        func(childComplexity int) int
-		PhoneNumber func(childComplexity int) int
-		Posts       func(childComplexity int, ids []int) int
-		Preferences func(childComplexity int) int
-		Role        func(childComplexity int) int
+		Address      func(childComplexity int) int
+		Comments     func(childComplexity int, ids []int) int
+		CreatedAt    func(childComplexity int) int
+		Email        func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastLogin    func(childComplexity int) int
+		Name         func(childComplexity int) int
+		PhoneNumber  func(childComplexity int) int
+		Posts        func(childComplexity int, ids []int) int
+		Preferences  func(childComplexity int) int
+		ProvokeError func(childComplexity int) int
+		Role         func(childComplexity int) int
 	}
 }
 
@@ -465,6 +466,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.User.Preferences(childComplexity), true
 
+	case "User.provokeError":
+		if e.complexity.User.ProvokeError == nil {
+			break
+		}
+
+		return e.complexity.User.ProvokeError(childComplexity), true
+
 	case "User.role":
 		if e.complexity.User.Role == nil {
 			break
@@ -597,117 +605,206 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schema/comment.graphqls", Input: `extend type Query {
-  comments(ids: [ID!]): [Comment!]!
+  "Retrieve comments by their IDs. If no IDs provided, returns all comments."
+  comments(
+    "Array of comment IDs to retrieve. If null or empty, returns all comments."
+    ids: [ID!]
+  ): [Comment!]!
 }
 
 extend type Mutation {
-  createComment(input: NewComment!): Comment!
-  deleteComment(id: ID!): Boolean!
+  "Create a new comment on a post."
+  createComment(
+    "Input data for creating the comment."
+    input: NewComment!
+  ): Comment!
+  "Delete a comment by its ID."
+  deleteComment("ID of the comment to delete." id: ID!): Boolean!
 }
 
 extend type Subscription {
+  "Subscribe to new comment creation events."
   commentCreated: Comment!
+  "Subscribe to comment deletion events."
   commentDeleted: ID!
 }
 
+"A comment made by a user on a post."
 type Comment {
+  "Unique identifier for the comment."
   id: ID!
+  "The post this comment belongs to."
   post: Post!
+  "The user who made this comment."
   user: User!
+  "Timestamp when the comment was created."
   createdAt: Time!
+  "The text content of the comment."
   content: String!
 }
 
+"Input for creating a new comment."
 input NewComment {
+  "Optional ID for the comment. If not provided, one will be generated."
   id: ID
+  "ID of the post to comment on."
   postId: ID!
+  "ID of the user making the comment."
   userId: ID!
+  "The text content of the comment."
   content: String!
 }
 `, BuiltIn: false},
 	{Name: "../schema/post.graphqls", Input: `extend type Query {
-  posts(ids: [ID!]): [Post!]!
+  "Retrieve posts by their IDs. If no IDs provided, returns all posts."
+  posts(
+    "Array of post IDs to retrieve. If null or empty, returns all posts."
+    ids: [ID!]
+  ): [Post!]!
 }
 
 extend type Mutation {
-  createPost(input: NewPost!): Post!
-  deletePost(id: ID!): Boolean!
+  "Create a new post."
+  createPost("Input data for creating the post." input: NewPost!): Post!
+  "Delete a post by its ID."
+  deletePost("ID of the post to delete." id: ID!): Boolean!
 }
 
 extend type Subscription {
+  "Subscribe to new post creation events."
   postCreated: Post!
+  "Subscribe to post deletion events."
   postDeleted: ID!
 }
 
+"A blog post or article created by a user."
 type Post {
+  "Unique identifier for the post."
   id: ID!
+  "Title of the post."
   title: String!
+  "Brief introduction or summary of the post."
   ingress: String!
-  body(limit: Int, offset: Int): String!
+  "Main content of the post. Can be limited and offset for pagination."
+  body(
+    "Maximum number of characters to return. If null, returns the full body."
+    limit: Int
+    "Number of characters to skip from the beginning."
+    offset: Int
+  ): String!
+  "The user who created this post."
   user: User!
+  "Category classification of the post."
   category: Category!
+  "Timestamp when the post was created."
   createdAt: Time!
-  comments(ids: [ID!]): [Comment!]!
+  "Comments on this post. Can be filtered by comment IDs."
+  comments(
+    "Array of comment IDs to filter by. If null or empty, returns all comments on this post."
+    ids: [ID!]
+  ): [Comment!]!
 }
 
+"Categories for organizing posts."
 enum Category {
+  "Technology-related posts."
   Technology
+  "Science-related posts."
   Science
+  "Business-related posts."
   Business
+  "Entertainment-related posts."
   Entertainment
+  "Health-related posts."
   Health
 }
 
+"Input for creating a new post."
 input NewPost {
+  "Optional ID for the post. If not provided, one will be generated."
   id: ID
+  "ID of the user creating the post."
   userId: ID!
+  "Title of the post."
   title: String!
+  "Brief introduction or summary of the post."
   ingress: String!
+  "Main content of the post."
   body: String!
+  "Category classification of the post."
   category: Category!
 }
 `, BuiltIn: false},
-	{Name: "../schema/schema.graphqls", Input: `directive @goExtraField(
-  name: String
-  type: String!
-  overrideTags: String
-  description: String
-) repeatable on OBJECT | INPUT_OBJECT
-
+	{Name: "../schema/schema.graphqls", Input: `"Custom scalar representing a timestamp in RFC3339 format."
 scalar Time
 `, BuiltIn: false},
 	{Name: "../schema/user.graphqls", Input: `extend type Query {
-  users(ids: [ID!]): [User!]!
+  "Retrieve users by their IDs. If no IDs provided, returns all users."
+  users(
+    "Array of user IDs to retrieve. If null or empty, returns all users."
+    ids: [ID!]
+  ): [User!]!
 }
 
+"A user in the system with profile information and preferences."
 type User {
+  "Unique identifier for the user."
   id: ID!
+  "Full name of the user."
   name: String!
+  "Email address of the user."
   email: String!
+  "Phone number of the user."
   phoneNumber: String!
+  "Physical address of the user."
   address: Address!
+  "Role assigned to the user in the system."
   role: Role!
+  "Timestamp when the user account was created."
   createdAt: Time!
+  "Timestamp of the user's last login."
   lastLogin: Time!
+  "User's personal preferences and settings."
   preferences: Preferences!
-  posts(ids: [ID!]): [Post!]!
-  comments(ids: [ID!]): [Comment!]!
+  "Posts created by this user. Can be filtered by post IDs."
+  posts(
+    "Array of post IDs to filter by. If null or empty, returns all posts by this user."
+    ids: [ID!]
+  ): [Post!]!
+  "Comments made by this user. Can be filtered by comment IDs."
+  comments(
+    "Array of comment IDs to filter by. If null or empty, returns all comments by this user."
+    ids: [ID!]
+  ): [Comment!]!
+  "Field that can be used to test error handling."
+  provokeError: Boolean!
 }
 
+"Physical address information for a user."
 type Address {
+  "Street address line."
   street: String!
+  "City name."
   city: String!
+  "Postal/ZIP code."
   zipCode: String!
+  "Country name."
   country: String!
 }
 
+"User roles in the system."
 enum Role {
+  "Administrator with full system access."
   admin
+  "Regular user with limited access."
   user
 }
 
+"User preferences and settings."
 type Preferences {
+  "UI theme preference (e.g., 'light', 'dark')."
   theme: String!
+  "Whether the user wants to receive notifications."
   notifications: Boolean!
 }
 `, BuiltIn: false},

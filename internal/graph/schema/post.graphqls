@@ -1,41 +1,79 @@
 extend type Query {
-  posts(ids: [ID!]): [Post!]!
+  "Retrieve posts by their IDs. If no IDs provided, returns all posts."
+  posts(
+    "Array of post IDs to retrieve. If null or empty, returns all posts."
+    ids: [ID!]
+  ): [Post!]!
 }
 
 extend type Mutation {
-  createPost(input: NewPost!): Post!
-  deletePost(id: ID!): Boolean!
+  "Create a new post."
+  createPost("Input data for creating the post." input: NewPost!): Post!
+  "Delete a post by its ID."
+  deletePost("ID of the post to delete." id: ID!): Boolean!
 }
 
 extend type Subscription {
+  "Subscribe to new post creation events."
   postCreated: Post!
+  "Subscribe to post deletion events."
   postDeleted: ID!
 }
 
+"A blog post or article created by a user."
 type Post {
+  "Unique identifier for the post."
   id: ID!
+  "Title of the post."
   title: String!
+  "Brief introduction or summary of the post."
   ingress: String!
-  body(limit: Int, offset: Int): String!
+  "Main content of the post. Can be limited and offset for pagination."
+  body(
+    "Maximum number of characters to return. If null, returns the full body."
+    limit: Int
+    "Number of characters to skip from the beginning."
+    offset: Int
+  ): String!
+  "The user who created this post."
   user: User!
+  "Category classification of the post."
   category: Category!
+  "Timestamp when the post was created."
   createdAt: Time!
-  comments(ids: [ID!]): [Comment!]!
+  "Comments on this post. Can be filtered by comment IDs."
+  comments(
+    "Array of comment IDs to filter by. If null or empty, returns all comments on this post."
+    ids: [ID!]
+  ): [Comment!]!
 }
 
+"Categories for organizing posts."
 enum Category {
+  "Technology-related posts."
   Technology
+  "Science-related posts."
   Science
+  "Business-related posts."
   Business
+  "Entertainment-related posts."
   Entertainment
+  "Health-related posts."
   Health
 }
 
+"Input for creating a new post."
 input NewPost {
+  "Optional ID for the post. If not provided, one will be generated."
   id: ID
+  "ID of the user creating the post."
   userId: ID!
+  "Title of the post."
   title: String!
+  "Brief introduction or summary of the post."
   ingress: String!
+  "Main content of the post."
   body: String!
+  "Category classification of the post."
   category: Category!
 }

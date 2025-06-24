@@ -1,34 +1,69 @@
 extend type Query {
-  users(ids: [ID!]): [User!]!
+  "Retrieve users by their IDs. If no IDs provided, returns all users."
+  users(
+    "Array of user IDs to retrieve. If null or empty, returns all users."
+    ids: [ID!]
+  ): [User!]!
 }
 
+"A user in the system with profile information and preferences."
 type User {
+  "Unique identifier for the user."
   id: ID!
+  "Full name of the user."
   name: String!
+  "Email address of the user."
   email: String!
+  "Phone number of the user."
   phoneNumber: String!
+  "Physical address of the user."
   address: Address!
+  "Role assigned to the user in the system."
   role: Role!
+  "Timestamp when the user account was created."
   createdAt: Time!
+  "Timestamp of the user's last login."
   lastLogin: Time!
+  "User's personal preferences and settings."
   preferences: Preferences!
-  posts(ids: [ID!]): [Post!]!
-  comments(ids: [ID!]): [Comment!]!
+  "Posts created by this user. Can be filtered by post IDs."
+  posts(
+    "Array of post IDs to filter by. If null or empty, returns all posts by this user."
+    ids: [ID!]
+  ): [Post!]!
+  "Comments made by this user. Can be filtered by comment IDs."
+  comments(
+    "Array of comment IDs to filter by. If null or empty, returns all comments by this user."
+    ids: [ID!]
+  ): [Comment!]!
+  "Field that can be used to test error handling."
+  provokeError: Boolean!
 }
 
+"Physical address information for a user."
 type Address {
+  "Street address line."
   street: String!
+  "City name."
   city: String!
+  "Postal/ZIP code."
   zipCode: String!
+  "Country name."
   country: String!
 }
 
+"User roles in the system."
 enum Role {
+  "Administrator with full system access."
   admin
+  "Regular user with limited access."
   user
 }
 
+"User preferences and settings."
 type Preferences {
+  "UI theme preference (e.g., 'light', 'dark')."
   theme: String!
+  "Whether the user wants to receive notifications."
   notifications: Boolean!
 }

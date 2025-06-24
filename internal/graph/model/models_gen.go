@@ -9,35 +9,55 @@ import (
 	"strconv"
 )
 
+// Physical address information for a user.
 type Address struct {
-	Street  string `json:"street"`
-	City    string `json:"city"`
+	// Street address line.
+	Street string `json:"street"`
+	// City name.
+	City string `json:"city"`
+	// Postal/ZIP code.
 	ZipCode string `json:"zipCode"`
+	// Country name.
 	Country string `json:"country"`
 }
 
 type Mutation struct {
 }
 
+// Input for creating a new comment.
 type NewComment struct {
-	ID      *int   `json:"id,omitempty"`
-	PostID  int    `json:"postId"`
-	UserID  int    `json:"userId"`
+	// Optional ID for the comment. If not provided, one will be generated.
+	ID *int `json:"id,omitempty"`
+	// ID of the post to comment on.
+	PostID int `json:"postId"`
+	// ID of the user making the comment.
+	UserID int `json:"userId"`
+	// The text content of the comment.
 	Content string `json:"content"`
 }
 
+// Input for creating a new post.
 type NewPost struct {
-	ID       *int     `json:"id,omitempty"`
-	UserID   int      `json:"userId"`
-	Title    string   `json:"title"`
-	Ingress  string   `json:"ingress"`
-	Body     string   `json:"body"`
+	// Optional ID for the post. If not provided, one will be generated.
+	ID *int `json:"id,omitempty"`
+	// ID of the user creating the post.
+	UserID int `json:"userId"`
+	// Title of the post.
+	Title string `json:"title"`
+	// Brief introduction or summary of the post.
+	Ingress string `json:"ingress"`
+	// Main content of the post.
+	Body string `json:"body"`
+	// Category classification of the post.
 	Category Category `json:"category"`
 }
 
+// User preferences and settings.
 type Preferences struct {
-	Theme         string `json:"theme"`
-	Notifications bool   `json:"notifications"`
+	// UI theme preference (e.g., 'light', 'dark').
+	Theme string `json:"theme"`
+	// Whether the user wants to receive notifications.
+	Notifications bool `json:"notifications"`
 }
 
 type Query struct {
@@ -46,14 +66,20 @@ type Query struct {
 type Subscription struct {
 }
 
+// Categories for organizing posts.
 type Category string
 
 const (
-	CategoryTechnology    Category = "Technology"
-	CategoryScience       Category = "Science"
-	CategoryBusiness      Category = "Business"
+	// Technology-related posts.
+	CategoryTechnology Category = "Technology"
+	// Science-related posts.
+	CategoryScience Category = "Science"
+	// Business-related posts.
+	CategoryBusiness Category = "Business"
+	// Entertainment-related posts.
 	CategoryEntertainment Category = "Entertainment"
-	CategoryHealth        Category = "Health"
+	// Health-related posts.
+	CategoryHealth Category = "Health"
 )
 
 var AllCategory = []Category{
@@ -107,11 +133,14 @@ func (e Category) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// User roles in the system.
 type Role string
 
 const (
+	// Administrator with full system access.
 	RoleAdmin Role = "admin"
-	RoleUser  Role = "user"
+	// Regular user with limited access.
+	RoleUser Role = "user"
 )
 
 var AllRole = []Role{

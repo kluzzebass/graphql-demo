@@ -1,28 +1,50 @@
 extend type Query {
-  comments(ids: [ID!]): [Comment!]!
+  "Retrieve comments by their IDs. If no IDs provided, returns all comments."
+  comments(
+    "Array of comment IDs to retrieve. If null or empty, returns all comments."
+    ids: [ID!]
+  ): [Comment!]!
 }
 
 extend type Mutation {
-  createComment(input: NewComment!): Comment!
-  deleteComment(id: ID!): Boolean!
+  "Create a new comment on a post."
+  createComment(
+    "Input data for creating the comment."
+    input: NewComment!
+  ): Comment!
+  "Delete a comment by its ID."
+  deleteComment("ID of the comment to delete." id: ID!): Boolean!
 }
 
 extend type Subscription {
+  "Subscribe to new comment creation events."
   commentCreated: Comment!
+  "Subscribe to comment deletion events."
   commentDeleted: ID!
 }
 
+"A comment made by a user on a post."
 type Comment {
+  "Unique identifier for the comment."
   id: ID!
+  "The post this comment belongs to."
   post: Post!
+  "The user who made this comment."
   user: User!
+  "Timestamp when the comment was created."
   createdAt: Time!
+  "The text content of the comment."
   content: String!
 }
 
+"Input for creating a new comment."
 input NewComment {
+  "Optional ID for the comment. If not provided, one will be generated."
   id: ID
+  "ID of the post to comment on."
   postId: ID!
+  "ID of the user making the comment."
   userId: ID!
+  "The text content of the comment."
   content: String!
 }

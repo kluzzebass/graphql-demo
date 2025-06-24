@@ -405,6 +405,8 @@ func (ec *executionContext) fieldContext_Comment_user(_ context.Context, field g
 				return ec.fieldContext_User_posts(ctx, field)
 			case "comments":
 				return ec.fieldContext_User_comments(ctx, field)
+			case "provokeError":
+				return ec.fieldContext_User_provokeError(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -951,6 +953,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_posts(ctx, field)
 			case "comments":
 				return ec.fieldContext_User_comments(ctx, field)
+			case "provokeError":
+				return ec.fieldContext_User_provokeError(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},

@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"graphql-demo/internal/graph/generated"
 	"graphql-demo/internal/graph/model"
 	"sort"
@@ -57,6 +58,11 @@ func (r *userResolver) Comments(ctx context.Context, obj *model.User, ids []int)
 	})
 
 	return comments, nil
+}
+
+// ProvokeError is the resolver for the provokeError field.
+func (r *userResolver) ProvokeError(ctx context.Context, obj *model.User) (bool, error) {
+	return false, fmt.Errorf("you just provoked an error")
 }
 
 // User returns generated.UserResolver implementation.
