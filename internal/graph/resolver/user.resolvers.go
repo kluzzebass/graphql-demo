@@ -30,6 +30,11 @@ func (r *queryResolver) Users(ctx context.Context, ids []int) ([]*model.User, er
 	return users, nil
 }
 
+// FullName is the resolver for the fullName field.
+func (r *userResolver) FullName(ctx context.Context, obj *model.User) (string, error) {
+	return obj.Name, nil
+}
+
 // Posts is the resolver for the posts field.
 func (r *userResolver) Posts(ctx context.Context, obj *model.User, ids []int) ([]*model.Post, error) {
 	LogResolverDepth(ctx, "userResolver.Posts", ResolverArgs{

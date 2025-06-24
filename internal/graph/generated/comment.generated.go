@@ -387,6 +387,8 @@ func (ec *executionContext) fieldContext_Comment_user(_ context.Context, field g
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
 			case "phoneNumber":
@@ -935,6 +937,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
 			case "phoneNumber":

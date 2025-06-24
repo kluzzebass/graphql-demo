@@ -12,6 +12,8 @@ type User {
   id: ID!
   "Full name of the user."
   name: String!
+  "Full name of the user."
+  fullName: String! @deprecated(reason: "Use name instead")
   "Email address of the user."
   email: String!
   "Phone number of the user."

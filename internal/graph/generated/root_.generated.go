@@ -101,6 +101,7 @@ type ComplexityRoot struct {
 		Comments     func(childComplexity int, ids []int) int
 		CreatedAt    func(childComplexity int) int
 		Email        func(childComplexity int) int
+		FullName     func(childComplexity int) int
 		ID           func(childComplexity int) int
 		LastLogin    func(childComplexity int) int
 		Name         func(childComplexity int) int
@@ -418,6 +419,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.User.Email(childComplexity), true
+
+	case "User.fullName":
+		if e.complexity.User.FullName == nil {
+			break
+		}
+
+		return e.complexity.User.FullName(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -752,6 +760,8 @@ type User {
   id: ID!
   "Full name of the user."
   name: String!
+  "Full name of the user."
+  fullName: String! @deprecated(reason: "Use name instead")
   "Email address of the user."
   email: String!
   "Phone number of the user."

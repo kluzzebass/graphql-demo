@@ -331,6 +331,8 @@ func (ec *executionContext) fieldContext_Post_user(_ context.Context, field grap
 				return ec.fieldContext_User_id(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
 			case "phoneNumber":
