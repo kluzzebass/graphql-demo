@@ -43,12 +43,20 @@ func (r *userResolver) Posts(ctx context.Context, obj *model.User, ids []int) ([
 	})
 	posts := r.PostService.Get(ids)
 
+	// filter the posts by user id
+	userPosts := make([]*model.Post, 0)
+	for _, post := range posts {
+		if post.UserID == obj.ID {
+			userPosts = append(userPosts, post)
+		}
+	}
+
 	// sort the posts by id
-	sort.Slice(posts, func(i, j int) bool {
-		return posts[i].CreatedAt.Before(posts[j].CreatedAt)
+	sort.Slice(userPosts, func(i, j int) bool {
+		return userPosts[i].CreatedAt.Before(userPosts[j].CreatedAt)
 	})
 
-	return posts, nil
+	return userPosts, nil
 }
 
 // Comments is the resolver for the comments field.
@@ -59,12 +67,20 @@ func (r *userResolver) Comments(ctx context.Context, obj *model.User, ids []int)
 	})
 	comments := r.CommentService.Get(ids)
 
+	// filter the comments by user id
+	userComments := make([]*model.Comment, 0)
+	for _, comment := range comments {
+		if comment.UserID == obj.ID {
+			userComments = append(userComments, comment)
+		}
+	}
+
 	// sort the comments by id
-	sort.Slice(comments, func(i, j int) bool {
-		return comments[i].CreatedAt.Before(comments[j].CreatedAt)
+	sort.Slice(userComments, func(i, j int) bool {
+		return userComments[i].CreatedAt.Before(userComments[j].CreatedAt)
 	})
 
-	return comments, nil
+	return userComments, nil
 }
 
 // ProvokeError is the resolver for the provokeError field.
